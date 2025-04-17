@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Bot from "./Components/Bot";
+import ChatBot from "./Components/Bot copy";
 import LandingPage from "./Components/LandingPage";
 
 function App() {
@@ -7,7 +7,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/bot" element={<Bot />} />
+        <Route path="/bot" element={< ChatBot />} />
       </Routes>
     </Router>
   );

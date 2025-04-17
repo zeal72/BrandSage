@@ -17,6 +17,7 @@ import {
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import '../App.css';
+import ChatBot from './Bot';
 
 const LandingPage = () => {
 	const [menuOpen, setMenuOpen] = React.useState(false);
@@ -24,6 +25,8 @@ const LandingPage = () => {
 
 	return (
 		<div className="min-h-screen bg-white text-gray-800 font-sans scroll-smooth">
+
+			<ChatBot />
 			{/* Sticky Navigation - Updated with proper links */}
 			<nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm flex justify-between items-center px-2 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 shadow-lg">
 				<div className="flex items-center space-x-2">
@@ -177,7 +180,7 @@ const LandingPage = () => {
 			{/* FAQ Section - Original implementation preserved */}
 			<SectionWrapper id="faq" className="bg-gray-50">
 				<SectionTitle>Frequently Asked Questions</SectionTitle>
-				<div className="max-w-xl mx-auto space-y-4 sm:space-y-8">
+				<div className="max-w-xl mx-auto space-y-4 sm:space-y-8 grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 items-center">
 					<FAQItem
 						question="What is BrandSage?"
 						answer="BrandSage is an AI-powered tool that generates a complete brand strategy from your business description—covering everything from your mission and vision to audience personas and brand tone."
@@ -257,8 +260,8 @@ const AnimatedButton = ({ to, children, className, variant = 'primary' }) => {
 			whileHover={{ scale: 1.05 }}
 			whileTap={{ scale: 0.95 }}
 			className={`inline-block rounded-full transition-all ${variant === 'primary'
-				? 'bg-indigo-600 text-white shadow-lg hover:shadow-indigo-200 hover:bg-transparent hover:text-indigo-600'
-				: 'border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600'
+				? 'bg-indigo-600 text-white shadow-lg hover:shadow-indigo-200'
+				: 'border-2 border-indigo-600 text-indigo-600'
 				} ${className}`}
 		>
 			{children}

@@ -24,3 +24,48 @@
 	-ms-overflow-style: none;
 	scrollbar-width: none;
 }
+
+@keyframes wave {
+
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+
+	50% {
+		transform: translateY(-5px);
+	}
+}
+
+.animate-wave {
+	animation: wave 1s infinite;
+}
+
+.delay-100 {
+	animation-delay: 0.2s;
+}
+
+.delay-200 {
+	animation-delay: 0.4s;
+}
+
+@keyframes binary-scroll {
+	from {
+		transform: translateY(0);
+	}
+
+	to {
+		transform: translateY(-100%);
+	}
+}
+
+.animate-binary-scroll {
+	animation: binary-scroll 40s linear infinite;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+	.animate-binary-scroll {
+		animation-duration: 20s;
+	}
+}
