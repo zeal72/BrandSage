@@ -3,6 +3,7 @@ import { FaRobot, FaPaperPlane, FaUser } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { FiChevronUp, FiWifi, FiWifiOff } from 'react-icons/fi';
 import '../App.css';
+import React from 'react';
 
 const ChatBot = () => {
 	const [inputMessage, setInputMessage] = useState('');
@@ -175,9 +176,64 @@ const ChatBot = () => {
 									) : (
 										<FaUser className="flex-shrink-0 mt-2 text-purple-300" />
 									)}
-									<p className={`text-base ${msg.isBot ? msg.isOffline || msg.isError ? 'text-red-100' : 'text-gray-100' : 'text-white'}`}>
-										{msg.text}
-									</p>
+									<div className={`text-base leading-relaxed space-y-3 font-mono ${msg.isBot ? msg.isOffline || msg.isError ? 'text-red-100' : 'text-gray-100' : 'text-white'}`}>
+										{(() => {
+											const elements = [];
+											let currentList = null;
+
+											msg.text.split('\n').forEach((line, i) => {
+												// Heading
+												if (line.startsWith('# ')) {
+													if (currentList) {
+														elements.push(currentList);
+														currentList = null;
+													}
+													elements.push(<h2 key={`h-${i}`} className="text-lg font-semibold text-cyan-400">{line.replace(/^# /, '')}</h2>);
+													return;
+												}
+
+												// Bullet list item
+												if (/^[-*]\s+/.test(line)) {
+													if (!currentList || currentList.type !== 'ul') {
+														if (currentList) elements.push(currentList);
+														currentList = <ul key={`ul-${i}`} className="list-disc list-inside text-cyan-200 space-y-1">{[]}</ul>;
+													}
+													currentList = React.cloneElement(
+														currentList,
+														{},
+														[...currentList.props.children, <li key={`ul-item-${i}`}>{line.replace(/^[-*]\s+/, '')}</li>]
+													);
+													return;
+												}
+
+												// Numbered list item
+												if (/^\d+\.\s+/.test(line)) {
+													if (!currentList || currentList.type !== 'ol') {
+														if (currentList) elements.push(currentList);
+														currentList = <ol key={`ol-${i}`} className="list-decimal list-inside text-blue-200 space-y-1">{[]}</ol>;
+													}
+													currentList = React.cloneElement(
+														currentList,
+														{},
+														[...currentList.props.children, <li key={`ol-item-${i}`}>{line.replace(/^\d+\.\s+/, '')}</li>]
+													);
+													return;
+												}
+
+												// End any list and render a paragraph
+												if (currentList) {
+													elements.push(currentList);
+													currentList = null;
+												}
+												elements.push(<p key={`p-${i}`} className="text-gray-100">{line}</p>);
+											});
+
+											if (currentList) elements.push(currentList); // flush remaining list
+											return elements;
+										})()}
+
+									</div>
+
 								</div>
 							</div>
 						</motion.div>
