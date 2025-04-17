@@ -13,13 +13,14 @@ const ChatBot = () => {
 	const [networkStatus, setNetworkStatus] = useState({ isOnline: navigator.onLine, lastChecked: Date.now() });
 	const messagesEndRef = useRef(null);
 	const textareaRef = useRef(null);
+	const controllerRef = useRef(null); // For aborting stale requests
 
-	// Scroll to bottom when messages or loading state changes
+	// Auto scroll
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 	}, [messages, isLoading]);
 
-	// Track network status
+	// Network status tracking
 	useEffect(() => {
 		const handleOnline = () => setNetworkStatus({ isOnline: true, lastChecked: Date.now() });
 		const handleOffline = () => setNetworkStatus({ isOnline: false, lastChecked: Date.now() });
@@ -59,7 +60,6 @@ const ChatBot = () => {
 
 		setIsLoading(true);
 
-		// Simple offline check
 		const now = Date.now();
 		if (now - networkStatus.lastChecked > 5000 && !navigator.onLine) {
 			setNetworkStatus({ isOnline: false, lastChecked: now });
@@ -69,18 +69,23 @@ const ChatBot = () => {
 		}
 
 		try {
-			// Use OpenRouter API key
 			const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
 			if (!apiKey) throw new Error('No OpenRouter API key configured');
 
+			// Abort previous request if any
+			if (controllerRef.current) controllerRef.current.abort();
+			const controller = new AbortController();
+			controllerRef.current = controller;
+
 			const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
 				method: 'POST',
+				signal: controller.signal,
 				headers: {
 					'Authorization': `Bearer ${apiKey}`,
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					model: 'deepseek/deepseek-chat-v3-0324:free',
+					model: 'mistralai/mistral-7b-instruct:free',
 					messages: [{ role: 'user', content: userText }]
 				})
 			});
@@ -95,7 +100,9 @@ const ChatBot = () => {
 			setMessages(prev => [...prev, { isBot: true, text: botReply }]);
 		} catch (err) {
 			console.error('API Error:', err);
-			setMessages(prev => [...prev, { isBot: true, text: "Oops! Something went wrong. Please try again later.", isError: true }]);
+			if (err.name !== 'AbortError') {
+				setMessages(prev => [...prev, { isBot: true, text: "Oops! Something went wrong. Please try again later.", isError: true }]);
+			}
 		} finally {
 			setIsLoading(false);
 		}
@@ -126,9 +133,7 @@ const ChatBot = () => {
 							<FaRobot className="text-3xl text-cyan-400" />
 						</motion.div>
 						<div>
-							<h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-								BrandSage AI
-							</h1>
+							<h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">BrandSage AI</h1>
 							<p className="text-sm text-purple-300/80 font-mono">v2.3.1 neural core active</p>
 						</div>
 					</div>
@@ -140,7 +145,6 @@ const ChatBot = () => {
 							</div>
 						) : (
 							<div className="flex items-center text-red-400" title="Offline">
-								<FiWifiOff className="mr-1 text-red-400" />
 								<FiWifiOff className="mr-1" />
 								<span className="hidden md:inline">Offline</span>
 							</div>
@@ -149,10 +153,9 @@ const ChatBot = () => {
 				</div>
 			</motion.div>
 
-			{/* Messages Container */}
+			{/* Messages */}
 			<div className="flex-1 overflow-y-auto p-4 max-w-4xl mx-auto w-full mt-16 mb-20 lg:mt-20 lg:mb-24" style={{ height: 'calc(100vh - 160px)' }}>
-				<div className="space-y-6">
-					<div className="pt-8"></div>
+				<div className="space-y-6 pt-8">
 					{messages.map((msg, index) => (
 						<motion.div
 							key={index}
@@ -195,7 +198,7 @@ const ChatBot = () => {
 				</div>
 			</div>
 
-			{/* Input Area */}
+			{/* Input */}
 			<motion.form
 				onSubmit={e => { e.preventDefault(); handleSubmit(); }}
 				initial={{ opacity: 0 }}
@@ -215,7 +218,6 @@ const ChatBot = () => {
 							className="flex-1 p-3 resize-none max-h-32 scrollbar-none overflow-y-auto transition-all duration-150 ease-in-out bg-gray-900/40 border border-gray-600/30 rounded-xl focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 text-gray-100 placeholder-gray-400 font-mono"
 							autoFocus
 						/>
-
 						<button
 							type="submit"
 							disabled={!inputMessage.trim()}
@@ -224,7 +226,6 @@ const ChatBot = () => {
 							<FaPaperPlane className="text-xl text-white" />
 						</button>
 					</div>
-
 					<p className="text-sm text-gray-400 mt-2 flex items-center font-mono">
 						<FiChevronUp className="mr-1 text-cyan-400" />
 						[ENTER] to transmit
